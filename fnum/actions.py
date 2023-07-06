@@ -54,15 +54,26 @@ def number_files(dirpath, suffixes, progressbar=None):
                 continue
 
             try:
-                if int(filepath.stem) < num:
+                if int(filepath.stem) <= num:
                     continue
             except ValueError:
                 pass
 
             newpath = numpath(filepath.suffix)
             num += 1
-            metadata["originals"][filepath.name] = newpath.name
-            metadata["order"].append(newpath.name)
+
+            try:
+                order_index = metadata["order"].index(filepath.name)
+                metadata["order"][order_index] = newpath.name
+            except ValueError:
+                metadata["order"].append(newpath.name)
+            try:
+                original_index = metadata["originals"].values().index(filepath.name)
+                original_key = metadata["originals"].keys(original_index)
+                metadata["originals"][original_key] = newpath.name
+            except ValueError:
+                metadata["originals"][filepath.name] = newpath.name
+
             filepath.rename(newpath)
 
     metadata["max"] = num - 1

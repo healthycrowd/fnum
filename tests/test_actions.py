@@ -22,7 +22,12 @@ def test_number_files_success_no_files():
 
 
 @pytest.mark.skip()
-def test_number_files_success_multiple_runs():
+def test_number_files_success_multiple_runs_add():
+    pass
+
+
+@pytest.mark.skip()
+def test_number_files_success_multiple_runs_remove():
     pass
 
 
