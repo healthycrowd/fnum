@@ -6,7 +6,7 @@ from .exceptions import FnumException
 from .metadata import FnumMetadata, FnumMax
 
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 
 def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
@@ -116,7 +116,7 @@ def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
 
         @contextmanager
         def noop_progressbar(*args, **kwargs):
-            yield files
+            yield args[0]
 
         progressbar = noop_progressbar
     with progressbar(files, length=len(files), label="Processing files") as bar:
