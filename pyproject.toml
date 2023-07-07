@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fnum"
-description = "Renames files in a directory to be named using sequential integers starting with 1"
+description = "Renames files in a directory using sequential integers"
 license = { text = "MIT" }
-authors = [{name = "Matt Wisniewski", email = "fnum@mattw.life"}]
+authors = [{name = "Matt Wisniewski", email = "healthycrowd@mattw.life"}]
 keywords = ["fnum", "cli", "utility", "file", "rename", "sequential", "order"]
 dynamic = ["version"]
 requires-python = ">=3.8.0"
@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/polishmatt/fnum"
+homepage = "https://github.com/healthycrowd/fnum"
 
 [project.scripts]
 fnum = "fnum.cli:cli"

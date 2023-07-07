@@ -7,7 +7,7 @@ from .exceptions import FnumException
 
 @click.command(
     help="""
-Renames files in a directory to be named using sequential integers starting with 1.\n
+Renames files in a directory using sequential integers.\n
 Suffixes is a comma separated list of file extensions to rename (eg. .jpg,.gif).\n
 Dirpath is a directory to rename files in.
 """,

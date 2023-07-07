@@ -1,3 +1,3 @@
 # fnum
 
-Renames files in a directory to be named using sequential integers starting with 1.
+Renames files in a directory using sequential integers.
