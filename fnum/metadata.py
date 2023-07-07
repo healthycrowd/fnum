@@ -50,13 +50,13 @@ class FnumMetadata:
 
     def to_file(self, dirpath):
         data_str = str(self)
-        (Path(dirpath) / cls._FILENAME).write_text(data_str)
+        (Path(dirpath) / self._FILENAME).write_text(data_str)
 
 
 class FnumMax:
     _FILENAME = "fnum.max.yaml"
 
-    def __init__(value):
+    def __init__(self, value):
         self.value = value
 
     @classmethod
@@ -73,4 +73,4 @@ class FnumMax:
 
     def to_file(self, dirpath):
         value_str = str(self)
-        (Path(dirpath) / cls._FILENAME).write_text(value_str)
+        (Path(dirpath) / self._FILENAME).write_text(value_str)
