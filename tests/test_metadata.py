@@ -64,6 +64,14 @@ def test_metadata_to_file_success():
     assert data_str == yaml.safe_dump(TEST_DATA)
 
 
+def test_metadata_contains_success():
+    metadata = FnumMetadata(TEST_DATA)
+    assert metadata.contains("1.txt") == True
+    assert metadata.contains("a.txt") == True
+    assert metadata.contains("nope.txt") == False
+    assert_metadata(TEST_DATA, metadata)
+
+
 def test_max_from_str_success():
     assert FnumMax.from_str(str(TEST_MAX)).value == TEST_MAX
 

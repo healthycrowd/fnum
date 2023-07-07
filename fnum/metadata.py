@@ -35,6 +35,13 @@ class FnumMetadata:
     def get_max(self):
         return FnumMax(self.max)
 
+    def contains(self, filename):
+        return (
+            filename in self.order
+            or filename in self.originals
+            or filename in self.originals.values()
+        )
+
     def __iter__(self):
         data = OrderedDict()
         for field in self._FIELDS:
