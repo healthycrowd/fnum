@@ -1,8 +1,8 @@
 import sys
 import click
 
-from .actions import number_files, write_max, write_metadata, FnumException
-from . import __version__
+from . import __version__, num_files
+from .exceptions import FnumException
 
 
 @click.command(
@@ -48,6 +48,6 @@ def cli(**kwargs):
         sys.exit(1)
 
     if kwargs["write_max"]:
-        write_max(dirpath, metadata)
+        metadata.get_max().to_file(dirpath)
     if kwargs["write_metadata"]:
-        write_metadata(dirpath, metadata)
+        metadata.to_file(dirpath)
