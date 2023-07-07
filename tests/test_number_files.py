@@ -55,7 +55,9 @@ def test_number_files_success_multiple_runs_remove():
         number_files(dirpath, suffixes=[".txt"])
         make_files(test_files[2:3], dirpath)
         number_files(dirpath, suffixes=[".txt"])
-        make_files(test_files[3:5], dirpath)
+        make_files(test_files[3:4], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        make_files(test_files[4:5], dirpath)
         number_files(dirpath, suffixes=[".txt"])
         assert_numbered_dir(test_files, dirpath)
 
@@ -71,15 +73,20 @@ def test_number_files_success_multiple_runs_add_and_remove():
         number_files(dirpath, suffixes=[".txt"])
         make_files(test_files[2:3], dirpath)
         number_files(dirpath, suffixes=[".txt"])
-        make_files(test_files[3:5], dirpath)
+        make_files(test_files[3:4], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        make_files(test_files[4:5], dirpath)
         number_files(dirpath, suffixes=[".txt"])
         assert_numbered_dir(test_files, dirpath)
 
         (dirpath / "3.txt").unlink()
         make_files(["f.txt"], dirpath)
-        number_files(dirpath, suffixes=[".txt"])
+        metadata = number_files(dirpath, suffixes=[".txt"])
         test_files = ["d.txt", "e.txt", "f.txt"]
         assert_numbered_dir(test_files, dirpath, start=3, ordered=True)
+        assert metadata.order == ["1.txt", "2.txt", "3.txt", "4.txt", "5.txt"]
+        assert len(metadata.originals.keys()) == 5, metadata.originals
+        assert metadata.max == 5
 
 
 def test_number_files_fail_conflicting_files():

@@ -29,7 +29,9 @@ def assert_numbered_dir(files, dirpath, start=1, ordered=False):
             expected = Path(filename).stem
             filepath = dirpath / f"{index+start}{suffix}"
             data = filepath.read_text()
-            assert data == expected
+            assert (
+                data == expected
+            ), f"{filepath.name} contains {data}, expected {expected}"
             if data in expected_data:
                 expected_data.remove(data)
         else:
