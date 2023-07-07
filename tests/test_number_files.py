@@ -10,27 +10,33 @@ from fnum.exceptions import FnumException
 TEST_FILES = ["a", "b", "c", "d", "e"]
 
 
+def make_files(files, dirpath):
+    for filename in files:
+        filepath = dirpath / filename
+        filepath.write_text(filepath.stem)
+
+
 @contextmanager
 def temp_dir(files):
     with TemporaryDirectory() as tempdir:
         dirpath = Path(tempdir)
-        for filename in files:
-            filepath = dirpath / filename
-            filepath.write_text(filepath.stem)
+        make_files(files, dirpath)
         yield dirpath
 
 
 def assert_numbered_dir(files, dirpath, start=1, ordered=False):
     found = []
-    originalpaths = tuple(dirpath / filename for filename in files)
+    originalpaths = tuple(Path(filename) for filename in files)
     expected_data = [originalpath.stem for originalpath in originalpaths]
     suffixes = {originalpath.suffix for originalpath in originalpaths}
 
     for index, filename in enumerate(files):
         if ordered:
-            filepath = dirpath / filename
+            suffix = Path(filename).suffix
+            expected = Path(filename).stem
+            filepath = dirpath / f"{index+start}{suffix}"
             data = filepath.read_text()
-            assert data == filepath.stem
+            assert data == expected
             if data in expected_data:
                 expected_data.remove(data)
         else:
@@ -79,19 +85,49 @@ def test_number_files_success_no_files():
         assert_numbered_dir(test_files, dirpath)
 
 
-@pytest.mark.skip()
 def test_number_files_success_multiple_runs_add():
-    pass
+    test_files = ["a.txt", "b.txt", "c.txt"]
+    with temp_dir(test_files) as dirpath:
+        number_files(dirpath, suffixes=[".txt"])
+        assert_numbered_dir(test_files, dirpath)
+
+        test_files = ["d.txt", "e.txt"]
+        make_files(test_files, dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        assert_numbered_dir(test_files, dirpath, start=4)
 
 
-@pytest.mark.skip()
 def test_number_files_success_multiple_runs_remove():
-    pass
+    test_files = ["a.txt", "b.txt", "c.txt", "d.txt", "e.txt"]
+    with temp_dir(test_files[0:2]) as dirpath:
+        number_files(dirpath, suffixes=[".txt"])
+        make_files(test_files[2:3], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        make_files(test_files[3:5], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        assert_numbered_dir(test_files, dirpath)
+
+        (dirpath / "3.txt").unlink()
+        number_files(dirpath, suffixes=[".txt"])
+        test_files = ["d.txt", "e.txt"]
+        assert_numbered_dir(test_files, dirpath, start=3, ordered=True)
 
 
-@pytest.mark.skip()
 def test_number_files_success_multiple_runs_add_and_remove():
-    pass
+    test_files = ["a.txt", "b.txt", "c.txt", "d.txt", "e.txt"]
+    with temp_dir(test_files[0:2]) as dirpath:
+        number_files(dirpath, suffixes=[".txt"])
+        make_files(test_files[2:3], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        make_files(test_files[3:5], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        assert_numbered_dir(test_files, dirpath)
+
+        (dirpath / "3.txt").unlink()
+        make_files(["f.txt"], dirpath)
+        number_files(dirpath, suffixes=[".txt"])
+        test_files = ["d.txt", "e.txt", "f.txt"]
+        assert_numbered_dir(test_files, dirpath, start=3, ordered=True)
 
 
 @pytest.mark.skip()
