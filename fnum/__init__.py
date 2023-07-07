@@ -1,5 +1,6 @@
 from pathlib import Path
 from contextlib import contextmanager
+from imeta import ImageMetadata
 
 from .exceptions import FnumException
 from .metadata import FnumMetadata, FnumMax
@@ -8,7 +9,7 @@ from .metadata import FnumMetadata, FnumMax
 __version__ = "1.1.0"
 
 
-def number_files(dirpath, suffixes, progressbar=None):
+def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
     dirpath = Path(dirpath)
 
     try:
@@ -67,6 +68,13 @@ def number_files(dirpath, suffixes, progressbar=None):
             metadata.originals[filepath.name] = newpath.name
 
         filepath.rename(newpath)
+        if include_imeta:
+            metapath = Path(ImageMetadata.for_image(str(filepath)))
+            newmetapath = metapath.parents[0] / f"{newpath.stem}{metapath.suffix}"
+            try:
+                metapath.rename(newmetapath)
+            except FileNotFoundError:
+                pass
 
     for filenum in range(num, nummax + 1):
         possible_names = tuple(dirpath / f"{filenum}{suffix}" for suffix in suffixes)

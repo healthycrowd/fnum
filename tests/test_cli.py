@@ -17,7 +17,14 @@ def test_cli_success(file_count):
 
     with temp_dir(test_files) as dirpath:
         result = runner.invoke(
-            cli, [".txt,.text", str(dirpath), "--write-max", "--write-metadata"]
+            cli,
+            [
+                ".txt,.text",
+                str(dirpath),
+                "--write-max",
+                "--write-metadata",
+                "--include-imeta",
+            ],
         )
         assert result.exit_code == 0
         assert_numbered_dir(test_files, dirpath)

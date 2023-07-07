@@ -1,6 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from contextlib import contextmanager
+from imeta import ImageMetadata
 
 
 def make_files(files, dirpath):
@@ -17,7 +18,14 @@ def temp_dir(files):
         yield dirpath
 
 
-def assert_numbered_dir(files, dirpath, start=1, ordered=False):
+def assert_imeta(filepath, data):
+    metapath = Path(ImageMetadata.for_image(str(filepath)))
+    assert metapath.exists(), f"Missing file {metapath.name}"
+    expected = metapath.read_text()
+    assert data == expected, f"{metapath.name} contains {data}, expected {expected}"
+
+
+def assert_numbered_dir(files, dirpath, start=1, ordered=False, with_imeta=False):
     found = []
     originalpaths = tuple(Path(filename) for filename in files)
     expected_data = [originalpath.stem for originalpath in originalpaths]
@@ -34,16 +42,20 @@ def assert_numbered_dir(files, dirpath, start=1, ordered=False):
             ), f"{filepath.name} contains {data}, expected {expected}"
             if data in expected_data:
                 expected_data.remove(data)
+            if with_imeta:
+                assert_imeta(filepath, data)
         else:
             for suffix in suffixes:
                 filepath = dirpath / f"{index+start}{suffix}"
                 if filepath.exists():
                     data = filepath.read_text()
-                    if data in expected_data:
-                        expected_data.remove(data)
-                        break
-                    else:
-                        assert False, f"Unexpected data {data} in file {filepath.name}"
+                    assert (
+                        data in expected_data
+                    ), f"Unexpected data {data} in file {filepath.name}"
+                    expected_data.remove(data)
+                    if with_imeta:
+                        assert_imeta(filepath, data)
+                    break
             else:
                 assert (
                     False

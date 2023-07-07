@@ -94,3 +94,18 @@ def test_number_files_fail_conflicting_files():
     with temp_dir(test_files) as dirpath:
         with pytest.raises(FnumException):
             number_files(dirpath, suffixes=[".txt", ".text"])
+
+
+def test_number_files_success_with_missing_imeta():
+    test_files = ["a.jpg", "b.jpg", "c.jpg", "d.jpg", "e.jpg"]
+    with temp_dir(test_files) as dirpath:
+        number_files(dirpath, suffixes=[".jpg"], include_imeta=True)
+        assert_numbered_dir(test_files, dirpath)
+
+
+def test_number_files_success_with_imeta():
+    test_files = ["a.jpg", "b.jpg", "c.jpg", "d.jpg", "e.jpg"]
+    meta_files = ["a.json", "b.json", "c.json", "d.json", "e.json"]
+    with temp_dir(test_files + meta_files) as dirpath:
+        number_files(dirpath, suffixes=[".jpg"], include_imeta=True)
+        assert_numbered_dir(test_files, dirpath)

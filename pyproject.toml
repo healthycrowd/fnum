@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "click",
     "pyyaml",
+    "imeta~=1.1",
 ]
 
 [project.urls]
