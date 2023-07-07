@@ -7,7 +7,7 @@ class FnumMetadata:
     _FIELDS = ["order", "originals", "max"]
     _FILENAME = "fnum.metadata.yaml"
 
-    def __init__(data):
+    def __init__(self, data):
         self._raw_data = data
         for field in self._FIELDS:
             setattr(self, field, data.get(field))

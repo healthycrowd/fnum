@@ -41,9 +41,9 @@ def number_files(dirpath, suffixes, progressbar=None):
 
         @contextmanager
         def noop_progressbar(*args, **kwargs):
-            pass
+            yield files
 
-        progressbar = noop_progessbar
+        progressbar = noop_progressbar
     with progressbar(files, length=len(files), label="Processing files") as bar:
         for filepath in bar:
             if not filepath.is_file() or filepath.suffix not in suffixes:
@@ -64,7 +64,7 @@ def number_files(dirpath, suffixes, progressbar=None):
             except ValueError:
                 metadata.order.append(newpath.name)
             try:
-                original_index = metadata.originals.values().index(filepath.name)
+                original_index = tuple(metadata.originals.values()).index(filepath.name)
                 original_key = metadata.originals.keys(original_index)
                 metadata.originals[original_key] = newpath.name
             except ValueError:
