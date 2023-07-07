@@ -1,7 +1,7 @@
 import sys
 import click
 
-from . import __version__, num_files
+from . import __version__, number_files
 from .exceptions import FnumException
 
 
