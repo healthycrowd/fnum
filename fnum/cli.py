@@ -72,8 +72,8 @@ def cli(**kwargs):
             )
         finally:
             _log.removeHandler(handler)
-    except FnumException as e:
-        click.echo(str(e))
+    except (FnumException, FileNotFoundError) as e:
+        click.echo(str(e), err=True)
         sys.exit(1)
 
     if kwargs["write_max"]:

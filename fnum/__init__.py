@@ -58,6 +58,8 @@ def number_files(dirpath, suffixes, include_imeta=False):
 
     def move_file(filepath):
         newpath = numpath(filepath.suffix)
+        if newpath.exists():
+            raise FnumException("Can't override existing file {newpath.name}")
 
         try:
             order_index = metadata.order.index(filepath.name)
