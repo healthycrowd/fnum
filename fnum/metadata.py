@@ -19,7 +19,7 @@ class FnumMetadata:
 
     @classmethod
     def from_file(cls, dirpath):
-        data_str = (Path(dirpath) / cls._FILENAME).read_text()
+        data_str = (Path(dirpath) / cls._FILENAME).read_bytes()
         return cls.from_str(data_str)
 
     @classmethod
@@ -52,12 +52,12 @@ class FnumMetadata:
         return data.items().__iter__()
 
     def __repr__(self):
-        data_str = yaml.safe_dump(dict(self))
+        data_str = yaml.safe_dump(dict(self), allow_unicode=True)
         return data_str
 
     def to_file(self, dirpath):
-        data_str = str(self)
-        (Path(dirpath) / self._FILENAME).write_text(data_str)
+        data_str = str(self).encode()
+        (Path(dirpath) / self._FILENAME).write_bytes(data_str)
 
 
 class FnumMax:

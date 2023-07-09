@@ -6,7 +6,7 @@ from .exceptions import FnumException
 from .metadata import FnumMetadata, FnumMax
 
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 
 def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):

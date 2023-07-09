@@ -96,3 +96,25 @@ def test_max_to_file_success():
 
     fmax.to_file(tmpdir.name)
     assert filepath.read_text() == str(TEST_MAX)
+
+
+def test_metadata_file_unicode():
+    test_str = "<Imagé *>"
+    test_data = {
+        "order": [test_str],
+        "originals": {test_str: test_str},
+        "max": 1,
+    }
+    tmpdir = TemporaryDirectory()
+    filepath = Path(tmpdir.name) / "fnum.metadata.yaml"
+
+    metadata = FnumMetadata(test_data)
+    metadata.to_file(tmpdir.name)
+    data_str = filepath.read_text()
+    assert data_str == yaml.safe_dump(test_data, allow_unicode=True)
+
+    metadata = FnumMetadata.from_file(tmpdir.name)
+    assert dict(metadata) == test_data
+
+    data_str = filepath.read_bytes()
+    assert test_str.encode() in data_str
