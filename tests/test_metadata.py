@@ -78,7 +78,7 @@ def test_max_from_str_success():
 
 def test_max_from_file_success():
     tmpdir = TemporaryDirectory()
-    filepath = Path(tmpdir.name) / "fnum.max.yaml"
+    filepath = Path(tmpdir.name) / "fnum.max.txt"
     filepath.write_text(str(TEST_MAX))
 
     fmax = FnumMax.from_file(tmpdir.name)
@@ -91,7 +91,7 @@ def test_max_to_str_success():
 
 def test_max_to_file_success():
     tmpdir = TemporaryDirectory()
-    filepath = Path(tmpdir.name) / "fnum.max.yaml"
+    filepath = Path(tmpdir.name) / "fnum.max.txt"
     fmax = FnumMax(TEST_MAX)
 
     fmax.to_file(tmpdir.name)
