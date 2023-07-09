@@ -61,7 +61,7 @@ class FnumMetadata:
 
 
 class FnumMax:
-    _FILENAME = "fnum.max.yaml"
+    _FILENAME = "fnum.max.txt"
 
     def __init__(self, value):
         self.value = value
