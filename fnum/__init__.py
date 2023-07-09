@@ -6,7 +6,7 @@ from .exceptions import FnumException
 from .metadata import FnumMetadata, FnumMax
 
 
-__version__ = "1.2.3"
+__version__ = "1.3.0"
 
 
 def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
@@ -119,7 +119,9 @@ def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
             yield args[0]
 
         progressbar = noop_progressbar
-    with progressbar(files, length=len(files), label="Processing files") as bar:
+    with progressbar(
+        files, length=len(files), label="Processing files", update_min_steps=10
+    ) as bar:
         for filepath in bar:
             if not filepath.is_file() or filepath.suffix not in suffixes:
                 continue
