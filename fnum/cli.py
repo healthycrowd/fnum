@@ -1,8 +1,17 @@
 import sys
 import click
+import logging
+import io
 
-from . import __version__, number_files
+from . import __version__, number_files, _log
 from .exceptions import FnumException
+
+
+class _ClickFormatter(logging.Formatter):
+    def format(self, record):
+        log_str = super().format(record)
+        click.echo(log_str)
+        return log_str
 
 
 @click.command(
@@ -49,14 +58,20 @@ def cli(**kwargs):
         click.echo("Suffixes contains a '/', did you mean ','?", err=True)
     suffixes = kwargs["suffixes"].split(",")
 
-    click.echo("Analyzing files...")
+    _log.setLevel(logging.INFO)
+    handler = logging.StreamHandler(io.StringIO())
+    handler.setFormatter(_ClickFormatter())
+    _log.addHandler(handler)
+
     try:
-        metadata = number_files(
-            dirpath=dirpath,
-            suffixes=suffixes,
-            progressbar=click.progressbar,
-            include_imeta=kwargs["include_imeta"],
-        )
+        try:
+            metadata = number_files(
+                dirpath=dirpath,
+                suffixes=suffixes,
+                include_imeta=kwargs["include_imeta"],
+            )
+        finally:
+            _log.removeHandler(handler)
     except FnumException as e:
         click.echo(str(e))
         sys.exit(1)

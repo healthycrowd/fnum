@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from contextlib import contextmanager
 from imeta import ImageMetadata
@@ -8,9 +9,12 @@ from .metadata import FnumMetadata, FnumMax
 
 __version__ = "1.3.0"
 
+_log = logging.getLogger(__name__)
 
-def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
+
+def number_files(dirpath, suffixes, include_imeta=False):
     dirpath = Path(dirpath)
+    _log.info("Analyzing files...")
 
     try:
         metadata = FnumMetadata.from_file(dirpath)
@@ -111,29 +115,18 @@ def number_files(dirpath, suffixes, progressbar=None, include_imeta=False):
             break
 
     # Find new files
-    files = list(dirpath.iterdir())
-    if not progressbar:
-
-        @contextmanager
-        def noop_progressbar(*args, **kwargs):
-            yield args[0]
-
-        progressbar = noop_progressbar
-    with progressbar(
-        files, length=len(files), label="Processing files", update_min_steps=10
-    ) as bar:
-        for filepath in bar:
-            if not filepath.is_file() or filepath.suffix not in suffixes:
+    _log.info("Processing files...")
+    for filepath in dirpath.iterdir():
+        if not filepath.is_file() or filepath.suffix not in suffixes:
+            continue
+        try:
+            if int(filepath.stem) <= num:
                 continue
+        except ValueError:
+            pass
 
-            try:
-                if int(filepath.stem) <= num:
-                    continue
-            except ValueError:
-                pass
-
-            move_file(filepath)
-            num += 1
+        move_file(filepath)
+        num += 1
 
     metadata.max = num - 1
     return metadata

@@ -7,6 +7,11 @@ from fnum.metadata import FnumMetadata, FnumMax
 from .number import make_files, temp_dir, assert_numbered_dir
 
 
+SUCCESS_OUTPUT = """Analyzing files...
+Processing files...
+"""
+
+
 @pytest.mark.parametrize("file_count", [n for n in range(6)])
 def test_cli_success(file_count):
     runner = CliRunner()
@@ -27,6 +32,7 @@ def test_cli_success(file_count):
             ],
         )
         assert result.exit_code == 0
+        assert result.output == SUCCESS_OUTPUT
         assert_numbered_dir(test_files, dirpath)
 
         fmax = FnumMax.from_file(str(dirpath))
@@ -56,3 +62,4 @@ def test_cli_fnumexception():
     with temp_dir(test_files) as dirpath:
         result = runner.invoke(cli, [".txt,.text", str(dirpath)])
         assert result.exit_code == 1
+        assert result.output != ""
