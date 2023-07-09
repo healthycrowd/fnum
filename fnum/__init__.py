@@ -7,7 +7,7 @@ from .exceptions import FnumException
 from .metadata import FnumMetadata, FnumMax
 
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 _log = logging.getLogger(__name__)
 
