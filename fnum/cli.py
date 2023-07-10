@@ -65,9 +65,11 @@ def cli(**kwargs):
 
     try:
         try:
-            metadata = number_files(
+            number_files(
                 dirpath=dirpath,
                 suffixes=suffixes,
+                write_metadata=kwargs["write_metadata"],
+                write_max=kwargs["write_max"],
                 include_imeta=kwargs["include_imeta"],
             )
         finally:
@@ -75,8 +77,3 @@ def cli(**kwargs):
     except (FnumException, FileNotFoundError) as e:
         click.echo(str(e), err=True)
         sys.exit(1)
-
-    if kwargs["write_max"]:
-        metadata.get_max().to_file(dirpath)
-    if kwargs["write_metadata"]:
-        metadata.to_file(dirpath)
