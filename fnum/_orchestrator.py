@@ -110,7 +110,7 @@ class _NumberOrchestrator:
     def move_file(self, filepath):
         newpath = self.numpath(filepath.suffix)
         if newpath.exists():
-            raise FnumException("Can't override existing file {newpath.name}")
+            raise FnumException(f"Can't override existing file {newpath.name}")
 
         if self.metadata:
             try:
@@ -162,13 +162,27 @@ class _NumberOrchestrator:
         # Find files in metadata file's order
         if self.metadata:
             for name in self.metadata.order:
+                filepath = self.dirpath / name
+                if filepath.exists():
+                    try:
+                        num = int(Path(name).stem)
+                        if num >= self.num:
+                            self.ordered_ranges += num
+                            self.ordered_files[num] = filepath
+                    except ValueError:
+                        self.new_files.append(filepath)
+                    continue
+
                 try:
-                    num = int(Path(name).stem)
-                    if num >= self.num:
-                        self.ordered_ranges += num
-                        self.ordered_files[num] = Path(self.dirpath / name)
+                    self.metadata.order.remove(name)
                 except ValueError:
-                    self.new_files.append(self.dirpath / name)
+                    pass
+                try:
+                    original_index = tuple(self.metadata.originals.values()).index(name)
+                    original_key = tuple(self.metadata.originals.keys())[original_index]
+                    del self.metadata.originals[original_key]
+                except ValueError:
+                    pass
 
         for filepath in self.dirpath.iterdir():
             if not filepath.is_file() or filepath.suffix not in self.suffixes:
@@ -176,11 +190,12 @@ class _NumberOrchestrator:
 
             try:
                 num = int(filepath.stem)
-                if num >= self.num:
+                if num >= self.num and num not in self.ordered_files:
                     self.unordered_ranges += num
                     self.unordered_files[num] = filepath
             except ValueError:
-                self.new_files.append(filepath)
+                if filepath not in self.new_files:
+                    self.new_files.append(filepath)
 
     def move_numbered(self):
         for num in self.ordered_ranges:

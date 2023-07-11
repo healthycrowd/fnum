@@ -110,3 +110,45 @@ def test_number_files_success_with_imeta():
     with temp_dir(test_files + meta_files) as dirpath:
         number_files(dirpath, suffixes=[".jpg"], include_imeta=True)
         assert_numbered_dir(test_files, dirpath)
+
+
+def test_number_files_success_order_new():
+    test_files = ["a.txt", "b.txt", "c.txt", "d.txt", "e.txt"]
+    with temp_dir([]) as dirpath:
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        make_files(test_files, dirpath)
+        metadata = FnumMetadata.from_file(dirpath)
+        metadata.order = test_files
+        metadata.to_file(dirpath)
+
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        assert_numbered_dir(test_files, dirpath, ordered=True)
+
+
+def test_number_files_success_order_existing():
+    test_files = ["5.txt", "3.txt", "1.txt", "2.txt", "4.txt"]
+    with temp_dir([]) as dirpath:
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        make_files(test_files, dirpath)
+        metadata = FnumMetadata.from_file(dirpath)
+        metadata.order = test_files
+        metadata.to_file(dirpath)
+
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        file_order = ["1.txt", "2.txt", "3.txt", "4.txt", "5.txt"]
+        assert_numbered_dir(file_order, dirpath, ordered=True)
+        metadata = FnumMetadata.from_file(dirpath)
+        assert metadata.order == test_files
+
+
+def test_number_files_fail_broken_order():
+    test_files = ["1.txt", "2.txt", "3.txt", "4.txt", "5.txt"]
+    with temp_dir(test_files) as dirpath:
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        metadata = FnumMetadata.from_file(dirpath)
+        metadata.order.remove("3.txt")
+        metadata.to_file(dirpath)
+        (dirpath / "2.txt").unlink()
+
+        with pytest.raises(FnumException):
+            number_files(dirpath, suffixes=[".txt"], write_metadata=True)
