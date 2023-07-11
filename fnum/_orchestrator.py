@@ -5,10 +5,80 @@ from .exceptions import FnumException
 from .metadata import FnumMetadata
 
 
+class NumRange:
+    def __init__(self, start, end=None):
+        self.start = start
+        self.end = self.start if end is None else end
+        self.next = None
+
+    def __contains__(self, item):
+        return self.start <= item <= self.end
+
+    def __repr__(self):
+        return str((self.start, self.end))
+
+    def combine_next(self):
+        if self.next and self.next.start == self.end + 1:
+            self.end = self.next.end
+            self.next = self.next.next
+
+    def walk_add(self, other):
+        if other == self.start - 1:
+            self.start = other
+            return self
+        if other < self.start:
+            newrange = self.__class__(other)
+            newrange.next = self
+            return newrange
+        if other in self:
+            return self
+        if other == self.end + 1:
+            self.end = other
+            self.combine_next()
+            return self
+        if not self.next:
+            newrange = self.__class__(other)
+            self.next = newrange
+            return self
+        if other < self.next.start:
+            newrange = self.__class__(other)
+            newrange.next = self.next
+            self.next = newrange
+            return self
+        self.next = self.next.walk_add(other)
+        self.combine_next()
+        return self
+
+
+class NumRanges:
+    def __init__(self):
+        self.start = None
+
+    def __iadd__(self, other):
+        if not self.start:
+            self.start = NumRange(other)
+        else:
+            self.start = self.start.walk_add(other)
+        return self
+
+    def __iter__(self):
+        numrange = self.start
+        while numrange:
+            yield numrange
+            numrange = numrange.next
+
+    def __bool__(self):
+        return self.start is not None
+
+    def __repr__(self):
+        return str(list(self))
+
+
 class _NumberOrchestrator:
     num = 1
     metadata = None
     regen_meta = False
+    new_ordered = None
 
     def __init__(self, dirpath, suffixes, write_metadata, write_max, include_imeta):
         self.dirpath = Path(dirpath)
@@ -76,6 +146,31 @@ class _NumberOrchestrator:
             self.num += 1
 
     def downshift_numbered(self):
+        if self.metadata:
+            numbered = NumRanges()
+            numbered_names = {}
+            self.new_ordered = []
+
+            for name in self.metadata.order:
+                try:
+                    num = int(Path(name).stem)
+                    numbered += num
+                    numbered_names[num] = name
+                except ValueError:
+                    self.new_ordered.append(name)
+
+            for numrange in numbered:
+                if numrange.end < self.num:
+                    continue
+                for num in range(numrange.start, numrange.end + 1):
+                    if num < self.num:
+                        continue
+                    original_key = tuple(self.metadata.originals.keys())[original_index]
+                    self.metadata.originals[original_key] = numbered_names[num]
+                    filepath = Path(self.dirpath / numbered_names[num])
+                    self.move_file(filepath)
+                    self.num += 1
+
         # Shift down existing ordered files so new ones are added at the end
         nummax = self.num - 1
         for filepath in self.dirpath.iterdir():
