@@ -4,7 +4,7 @@ from ._orchestrator import _NumberOrchestrator
 from .metadata import FnumMetadata, FnumMax
 
 
-__version__ = "1.4.0"
+__version__ = "1.5.0"
 
 _log = logging.getLogger(__name__)
 
