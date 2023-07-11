@@ -17,8 +17,10 @@ def number_files(
         dirpath, suffixes, write_metadata, write_max, include_imeta
     )
     orchestrator.find_ordered()
-    orchestrator.downshift_numbered()
+
     _log.info("Processing files...")
+    orchestrator.downshift_numbered()
     orchestrator.number_new_files()
+
     orchestrator.maybe_write_metadata()
     return orchestrator.metadata

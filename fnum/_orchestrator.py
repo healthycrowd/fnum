@@ -64,7 +64,12 @@ class NumRanges:
     def __iter__(self):
         numrange = self.start
         while numrange:
-            yield numrange
+            intiter = iter(range(numrange.start, numrange.end + 1))
+            try:
+                while True:
+                    yield next(intiter)
+            except StopIteration:
+                pass
             numrange = numrange.next
 
     def __bool__(self):
@@ -154,79 +159,33 @@ class _NumberOrchestrator:
             for name in self.metadata.order:
                 try:
                     num = int(Path(name).stem)
-                    numbered += num
-                    numbered_names[num] = name
+                    if num >= self.num:
+                        numbered += num
+                        numbered_names[num] = name
                 except ValueError:
-                    self.new_ordered.append(name)
+                    self.new_ordered.append(self.dirpath / name)
 
-            for numrange in numbered:
-                if numrange.end < self.num:
-                    continue
-                for num in range(numrange.start, numrange.end + 1):
-                    if num < self.num:
-                        continue
-                    original_key = tuple(self.metadata.originals.keys())[original_index]
-                    self.metadata.originals[original_key] = numbered_names[num]
-                    filepath = Path(self.dirpath / numbered_names[num])
-                    self.move_file(filepath)
-                    self.num += 1
+            for num in numbered:
+                filepath = Path(self.dirpath / numbered_names[num])
+                self.move_file(filepath)
+                self.num += 1
 
-        # Shift down existing ordered files so new ones are added at the end
-        nummax = self.num - 1
+        numbered = NumRanges()
+        numbered_names = {}
         for filepath in self.dirpath.iterdir():
             if not filepath.is_file() or filepath.suffix not in self.suffixes:
                 continue
 
             try:
-                filenum = int(filepath.stem)
+                num = int(filepath.stem)
+                if num >= self.num:
+                    numbered += num
+                    numbered_names[num] = filepath
             except ValueError:
-                continue
-
-            if filenum > nummax:
-                nummax = filenum
-
-        for filenum in range(self.num, nummax + 1):
-            possible_names = tuple(
-                self.dirpath / f"{filenum}{suffix}" for suffix in self.suffixes
-            )
-            used_suffixes = tuple(
-                filepath for filepath in possible_names if filepath.exists()
-            )
-            if len(used_suffixes) > 1:
-                raise FnumException(
-                    f"Unexpectedly found multiple existing files with number {filenum}"
-                )
-
-            if not used_suffixes:
-                for filepath in possible_names:
-                    name = filepath.name
-                    if (
-                        name in self.metadata.order
-                        or name in self.metadata.originals.values()
-                    ):
-                        try:
-                            self.metadata.order.remove(name)
-                        except ValueError:
-                            pass
-                        try:
-                            original_index = tuple(
-                                self.metadata.originals.values()
-                            ).index(name)
-                            original_key = tuple(self.metadata.originals.keys())[
-                                original_index
-                            ]
-                            del self.metadata.originals[original_key]
-                        except ValueError:
-                            pass
-
-                        break
-                continue
-
-            filepath = used_suffixes[0]
-            self.move_file(filepath)
+                self.new_ordered.append(filepath)
+        for num in numbered:
+            self.move_file(numbered_names[num])
             self.num += 1
-            if int(filepath.stem) == nummax:
-                break
 
     def number_new_files(self):
         for filepath in self.dirpath.iterdir():
