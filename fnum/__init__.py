@@ -24,4 +24,3 @@ def number_files(
     orchestrator.move_new()
 
     orchestrator.maybe_write_metadata()
-    return orchestrator.metadata

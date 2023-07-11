@@ -99,13 +99,8 @@ class _NumberOrchestrator:
 
         try:
             self.metadata = FnumMetadata.from_file(dirpath)
-            self.regen_meta = False
         except FileNotFoundError:
             if self.write_metadata or self.write_max:
-                self.metadata = FnumMetadata.get_default()
-                self.regen_meta = True
-            else:
-                # remove this when possible
                 self.metadata = FnumMetadata.get_default()
                 self.regen_meta = True
 
@@ -117,19 +112,20 @@ class _NumberOrchestrator:
         if newpath.exists():
             raise FnumException("Can't override existing file {newpath.name}")
 
-        try:
-            order_index = self.metadata.order.index(filepath.name)
-            self.metadata.order[order_index] = newpath.name
-        except ValueError:
-            self.metadata.order.append(newpath.name)
-        try:
-            original_index = tuple(self.metadata.originals.values()).index(
-                filepath.name
-            )
-            original_key = tuple(self.metadata.originals.keys())[original_index]
-            self.metadata.originals[original_key] = newpath.name
-        except ValueError:
-            self.metadata.originals[filepath.name] = newpath.name
+        if self.metadata:
+            try:
+                order_index = self.metadata.order.index(filepath.name)
+                self.metadata.order[order_index] = newpath.name
+            except ValueError:
+                self.metadata.order.append(newpath.name)
+            try:
+                original_index = tuple(self.metadata.originals.values()).index(
+                    filepath.name
+                )
+                original_key = tuple(self.metadata.originals.keys())[original_index]
+                self.metadata.originals[original_key] = newpath.name
+            except ValueError:
+                self.metadata.originals[filepath.name] = newpath.name
 
         filepath.rename(newpath)
         if self.include_imeta:

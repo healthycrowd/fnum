@@ -1,6 +1,6 @@
 import pytest
 
-from fnum import number_files
+from fnum import number_files, FnumMetadata
 from fnum.exceptions import FnumException
 
 from .number import make_files, temp_dir, assert_numbered_dir
@@ -81,7 +81,8 @@ def test_number_files_success_multiple_runs_add_and_remove():
 
         (dirpath / "3.txt").unlink()
         make_files(["f.txt"], dirpath)
-        metadata = number_files(dirpath, suffixes=[".txt"])
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        metadata = FnumMetadata.from_file(dirpath)
         test_files = ["d.txt", "e.txt", "f.txt"]
         assert_numbered_dir(test_files, dirpath, start=3, ordered=True)
         assert metadata.order == ["1.txt", "2.txt", "3.txt", "4.txt", "5.txt"]
