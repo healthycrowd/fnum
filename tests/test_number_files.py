@@ -152,3 +152,25 @@ def test_number_files_fail_broken_order():
 
         with pytest.raises(FnumException):
             number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+
+
+def test_number_files_success_add_with_order():
+    test_files = ["1.txt", "2.txt"]
+    with temp_dir(test_files) as dirpath:
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        new_files = ["101.txt", "200.txt", "100.txt", "new.txt"]
+        make_files(new_files, dirpath)
+        metadata = FnumMetadata.from_file(dirpath)
+        metadata.order += new_files
+        metadata.to_file(dirpath)
+
+        number_files(dirpath, suffixes=[".txt"], write_metadata=True)
+        file_order = ["1.txt", "2.txt", "3.txt", "4.txt", "5.txt"]
+        assert_numbered_dir(
+            file_order,
+            dirpath,
+            ordered=True,
+            contents=["1", "2", "100", "101", "200", "new"],
+        )
+        metadata = FnumMetadata.from_file(dirpath)
+        assert metadata.order == ["1.txt", "2.txt", "4.txt", "5.txt", "3.txt", "6.txt"]

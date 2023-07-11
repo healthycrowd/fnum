@@ -25,7 +25,9 @@ def assert_imeta(filepath, data):
     assert data == expected, f"{metapath.name} contains {data}, expected {expected}"
 
 
-def assert_numbered_dir(files, dirpath, start=1, ordered=False, with_imeta=False):
+def assert_numbered_dir(
+    files, dirpath, start=1, ordered=False, with_imeta=False, contents=None
+):
     found = []
     originalpaths = tuple(Path(filename) for filename in files)
     expected_data = [originalpath.stem for originalpath in originalpaths]
@@ -34,7 +36,7 @@ def assert_numbered_dir(files, dirpath, start=1, ordered=False, with_imeta=False
     for index, filename in enumerate(files):
         if ordered:
             suffix = Path(filename).suffix
-            expected = Path(filename).stem
+            expected = contents[index] if contents else Path(filename).stem
             filepath = dirpath / f"{index+start}{suffix}"
             data = filepath.read_text()
             assert (
@@ -50,7 +52,7 @@ def assert_numbered_dir(files, dirpath, start=1, ordered=False, with_imeta=False
                 if filepath.exists():
                     data = filepath.read_text()
                     assert (
-                        data in expected_data
+                        data in contents if contents else expected_data
                     ), f"Unexpected data {data} in file {filepath.name}"
                     expected_data.remove(data)
                     if with_imeta:
@@ -61,4 +63,5 @@ def assert_numbered_dir(files, dirpath, start=1, ordered=False, with_imeta=False
                     False
                 ), f"Missing file {index+start}, attempted suffixes {suffixes}"
 
-    assert not expected_data, expected_data
+    if not contents:
+        assert not expected_data, expected_data
