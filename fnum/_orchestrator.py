@@ -83,6 +83,9 @@ class _NumberOrchestrator:
     num = 1
     metadata = None
     regen_meta = False
+
+    numbered_ranges = None
+    numbered_files = None
     new_ordered = None
 
     def __init__(self, dirpath, suffixes, write_metadata, write_max, include_imeta):
@@ -134,6 +137,7 @@ class _NumberOrchestrator:
                 metapath.rename(newmetapath)
             except FileNotFoundError:
                 pass
+        self.num += 1
 
     def find_ordered(self):
         # Find what files we already have in order
@@ -150,28 +154,22 @@ class _NumberOrchestrator:
                 self.metadata.originals[filepath.name] = filepath.name
             self.num += 1
 
-    def downshift_numbered(self):
-        if self.metadata:
-            numbered = NumRanges()
-            numbered_names = {}
-            self.new_ordered = []
+    def find_movable(self):
+        self.numbered_ranges = NumRanges()
+        self.numbered_files = {}
+        self.new_ordered = []
 
+        # Find files in metadata file's order
+        if self.metadata:
             for name in self.metadata.order:
                 try:
                     num = int(Path(name).stem)
                     if num >= self.num:
-                        numbered += num
-                        numbered_names[num] = name
+                        self.numbered_ranges += num
+                        self.numbered_files[num] = Path(self.dirpath / name)
                 except ValueError:
                     self.new_ordered.append(self.dirpath / name)
 
-            for num in numbered:
-                filepath = Path(self.dirpath / numbered_names[num])
-                self.move_file(filepath)
-                self.num += 1
-
-        numbered = NumRanges()
-        numbered_names = {}
         for filepath in self.dirpath.iterdir():
             if not filepath.is_file() or filepath.suffix not in self.suffixes:
                 continue
@@ -179,26 +177,18 @@ class _NumberOrchestrator:
             try:
                 num = int(filepath.stem)
                 if num >= self.num:
-                    numbered += num
-                    numbered_names[num] = filepath
+                    self.numbered_ranges += num
+                    self.numbered_files[num] = filepath
             except ValueError:
                 self.new_ordered.append(filepath)
-        for num in numbered:
-            self.move_file(numbered_names[num])
-            self.num += 1
 
-    def number_new_files(self):
-        for filepath in self.dirpath.iterdir():
-            if not filepath.is_file() or filepath.suffix not in self.suffixes:
-                continue
-            try:
-                if int(filepath.stem) <= self.num:
-                    continue
-            except ValueError:
-                pass
+    def move_numbered(self):
+        for num in self.numbered_ranges:
+            self.move_file(self.numbered_files[num])
 
+    def move_new(self):
+        for filepath in self.new_ordered:
             self.move_file(filepath)
-            self.num += 1
 
     def maybe_write_metadata(self):
         if not self.metadata:
