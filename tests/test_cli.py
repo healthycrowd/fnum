@@ -16,7 +16,7 @@ Processing files...
 def test_cli_success(file_count):
     runner = CliRunner()
     test_files = [
-        chr(ord("a") + n) + "." + (".txt" if n % 2 == 0 else ".text")
+        chr(ord("a") + n) + (".txt" if n % 2 == 0 else ".text")
         for n in range(file_count)
     ]
 
@@ -53,6 +53,30 @@ def test_cli_success(file_count):
             for num in range(1, len(test_files) + 1)
         )
         assert metadata.max == len(test_files)
+
+
+def test_cli_success_verbose():
+    runner = CliRunner()
+    file_count = 5
+    test_files = [
+        chr(ord("a") + n) + (".txt" if n % 2 == 0 else ".text")
+        for n in range(file_count)
+    ]
+
+    with temp_dir(test_files) as dirpath:
+        result = runner.invoke(
+            cli,
+            [
+                ".txt,.text",
+                str(dirpath),
+                "--write-max",
+                "--write-metadata",
+                "--include-imeta",
+                "--verbose",
+            ],
+        )
+        assert result.exit_code == 0
+        assert len(result.output) > len(SUCCESS_OUTPUT)
 
 
 def test_cli_fnumexception():

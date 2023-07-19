@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from imeta import ImageMetadata
 
@@ -89,8 +90,13 @@ class _NumberOrchestrator:
     unordered_ranges = None
     unordered_files = None
     new_files = None
+    removed_files = None
+
+    log = None
 
     def __init__(self, dirpath, suffixes, write_metadata, write_max, include_imeta):
+        self.log = logging.getLogger(__name__)
+
         self.dirpath = Path(dirpath)
         self.suffixes = suffixes
         self.write_metadata = write_metadata
@@ -109,8 +115,11 @@ class _NumberOrchestrator:
 
     def move_file(self, filepath):
         newpath = self.numpath(filepath.suffix)
+        self.log.debug(f"Renaming {filepath.name} to {newpath.name}")
         if newpath.exists():
-            raise FnumException(f"Can't override existing file {newpath.name}")
+            raise FnumException(
+                f"Can't override existing file {newpath.name} while renaming {filepath.name}"
+            )
 
         if self.metadata:
             try:
@@ -158,6 +167,8 @@ class _NumberOrchestrator:
         self.unordered_ranges = NumRanges()
         self.unordered_files = {}
         self.new_files = []
+        self.removed_files = []
+        self.log.debug(f"Numbering will start from {self.num}")
 
         # Find files in metadata file's order
         if self.metadata:
@@ -173,16 +184,8 @@ class _NumberOrchestrator:
                         self.new_files.append(filepath)
                     continue
 
-                try:
-                    self.metadata.order.remove(name)
-                except ValueError:
-                    pass
-                try:
-                    original_index = tuple(self.metadata.originals.values()).index(name)
-                    original_key = tuple(self.metadata.originals.keys())[original_index]
-                    del self.metadata.originals[original_key]
-                except ValueError:
-                    pass
+                self.log.debug(f"Missing {name}, removing from metadata")
+                self.removed_files.append(name)
 
         for filepath in self.dirpath.iterdir():
             if not filepath.is_file() or filepath.suffix not in self.suffixes:
@@ -210,6 +213,18 @@ class _NumberOrchestrator:
     def maybe_write_metadata(self):
         if not self.metadata:
             return
+
+        for name in self.removed_files:
+            try:
+                self.metadata.order.remove(name)
+            except ValueError:
+                pass
+            try:
+                original_index = tuple(self.metadata.originals.values()).index(name)
+                original_key = tuple(self.metadata.originals.keys())[original_index]
+                del self.metadata.originals[original_key]
+            except ValueError:
+                pass
 
         self.metadata.max = self.num - 1
         if self.write_max:
